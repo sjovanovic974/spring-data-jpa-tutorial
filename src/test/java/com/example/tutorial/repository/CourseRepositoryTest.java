@@ -6,9 +6,9 @@ import com.example.tutorial.model.Teacher;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -19,6 +19,20 @@ class CourseRepositoryTest {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    private static void printCourses(List<Course> courses) {
+        courses.forEach(course -> {
+            System.out.println("--------------------------------------");
+            System.out.println("Course ID: " + course.getCourseId());
+            System.out.println("Course Title: " + course.getTitle());
+            System.out.println("Course Credit: " + course.getCredit());
+            System.out.println("Course Material URL: " + course.getCourseMaterial().getUrl());
+            System.out.println("Course Teacher: " +
+                    (course.getTeacher() != null ? course.getTeacher().getFirstName() + " " +
+                            course.getTeacher().getLastName() : "Not Assigned"));
+            System.out.println("--------------------------------------");
+        });
+    }
 
 
     @Test
@@ -62,6 +76,7 @@ class CourseRepositoryTest {
         courseRepository.saveAll(List.of(course, courseJava));
     }
 
+
     @Test
     public void saveCourseWithTeacher() {
 
@@ -88,15 +103,9 @@ class CourseRepositoryTest {
     public void printAllCourses() {
         List<Course> courses = courseRepository.findAll();
 
-        courses.forEach(course -> {
-            System.out.println("--------------------------------------");
-            System.out.println("Course ID: " + course.getCourseId());
-            System.out.println("Course Title: " + course.getTitle());
-            System.out.println("Course Credit: " + course.getCredit());
-            System.out.println("Course Material URL: " + course.getCourseMaterial().getUrl());
-            System.out.println("--------------------------------------");
-        });
+        printCourses(courses);
     }
+
 
     @Test
     public void findAllPagination() {
@@ -111,14 +120,37 @@ class CourseRepositoryTest {
         System.out.println("Total elements: " + totalELements);
         System.out.println("Total pages: " + totalPages);
 
-        courses.forEach(course -> {
-            System.out.println("-------------------------------------------------------------------");
-            System.out.println("Course Title: " + course.getTitle());
-            System.out.println("Course Credit: " + course.getCredit());
-            System.out.println("Course Material: " + course.getCourseMaterial().getUrl());
-            System.out.println("Course Teacher: " + (course.getTeacher() != null ? course.getTeacher().getFirstName() +
-                    " " + course.getTeacher().getLastName() : "Not Assigned"));
-            System.out.println("-------------------------------------------------------------------");
-        });
+        printCourses(courses);
+    }
+
+    @Test
+    public void findAllSorting() {
+
+        Pageable sortByTitle = PageRequest.of(0, 3, Sort.by("title"));
+
+        Pageable sortByCreditDescending = PageRequest.of(0, 3, Sort.by("credit").descending());
+
+        Pageable sortByTitleAndCreditDescending = PageRequest.of(
+                0,
+                3,
+                Sort.by("title")
+                        .descending()
+                        .and(Sort.by("credit")
+                                .descending())
+
+        );
+
+        List<Course> courses = courseRepository.findAll(sortByCreditDescending).getContent();
+
+        printCourses(courses);
+    }
+
+    @Test
+    public void printFindByTitleContaining() {
+        Pageable firstPageTenRecords = PageRequest.of(0, 10);
+
+        List<Course> courses = courseRepository.findByTitleContaining("D", firstPageTenRecords).getContent();
+
+        printCourses(courses);
     }
 }
