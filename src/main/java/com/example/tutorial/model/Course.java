@@ -10,7 +10,6 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString(exclude = "courseMaterial")
 public class Course {
 
     @Id
@@ -24,7 +23,11 @@ public class Course {
     @Column(name = "credit", nullable = false)
     private Integer credit;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "course_material_id", referencedColumnName = "id")
     private CourseMaterial courseMaterial;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "teacher_id", referencedColumnName = "id")
+    private Teacher teacher;
 }
